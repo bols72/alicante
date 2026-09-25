@@ -180,7 +180,7 @@ export default function Dashboard() {
         {store?.mode === "local" && (
           <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-200 dark:ring-amber-500/30">
             <strong>Demo mode:</strong> Supabase isn&apos;t configured, so reminders are saved in this browser only. Set{" "}
-            <code className="font-mono">SUPABASE_URL</code> and <code className="font-mono">SUPABASE_SERVICE_ROLE_KEY</code> to use the database.
+            <code className="font-mono">SUPABASE_URL</code> and <code className="font-mono">SUPABASE_SECRET_KEY</code> to use the database.
           </div>
         )}
 

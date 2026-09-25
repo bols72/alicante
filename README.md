@@ -55,20 +55,24 @@ Other scripts: `npm run build`, `npm start`, `npm run lint` (type check).
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Open **SQL Editor** and run [`supabase/schema.sql`](supabase/schema.sql). You can also run [`supabase/seed.sql`](supabase/seed.sql) to add the sample reminders, or use the "Load sample reminders" button in the app.
-3. Under **Project Settings → API**, copy the project URL and the `service_role` key into `.env.local`:
+3. Copy the project URL and a server-side key into `.env.local`:
+   - **Project URL:** in **Project Settings → Data API**, or click **Connect** at the top of the dashboard. It looks like `https://abcd1234.supabase.co`.
+   - **Secret key:** in **Project Settings → API Keys**, under **Secret keys**. It starts with `sb_secret_`. If there isn't one yet, create one there. Don't use the *publishable* key: it can't read the table.
 
    ```
-   SUPABASE_URL=https://xxxx.supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=eyJ...
+   SUPABASE_URL=https://abcd1234.supabase.co
+   SUPABASE_SECRET_KEY=sb_secret_...
    ```
 
-The browser never talks to Supabase directly. All reads and writes go through the Next.js API routes in `app/api/reminders`, which use the service-role key on the server. Row Level Security is enabled on the table with no public policies, so the anon key can't read or change reminders.
+   On older projects, the legacy `service_role` key works too. It's on the **Legacy API Keys** tab; set it as `SUPABASE_SERVICE_ROLE_KEY` instead.
+
+The browser never talks to Supabase directly. All reads and writes go through the Next.js API routes in `app/api/reminders`, which use the secret key on the server. Row Level Security is enabled on the table with no public policies, so the anon key can't read or change reminders.
 
 ## Deploy to Vercel
 
 1. Push this repository to GitHub.
 2. In Vercel, click **Add New → Project** and import the repository. The framework preset (Next.js) is detected automatically.
-3. Add the environment variables `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (for Production and Preview).
+3. Add the environment variables `SUPABASE_URL` and `SUPABASE_SECRET_KEY` (for Production and Preview).
 4. Click **Deploy**.
 
 Or use the CLI: `npx vercel` and then `npx vercel --prod`.

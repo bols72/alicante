@@ -4,14 +4,19 @@ import type { Reminder } from "./types";
 
 let client: SupabaseClient | null = null;
 
-export function isSupabaseConfigured(): boolean {
-  return Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+/** Supabase "Secret key" (sb_secret_...), or the legacy service_role key. */
+function serverKey(): string | undefined {
+  return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 }
 
-/** Server-side Supabase client using the service role key. Never import from client components. */
+export function isSupabaseConfigured(): boolean {
+  return Boolean(process.env.SUPABASE_URL && serverKey());
+}
+
+/** Server-side Supabase client using the secret key. Never import from client components. */
 export function getSupabase(): SupabaseClient {
   if (!isSupabaseConfigured()) throw new Error("Supabase is not configured");
-  client ??= createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  client ??= createClient(process.env.SUPABASE_URL!, serverKey()!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return client;
