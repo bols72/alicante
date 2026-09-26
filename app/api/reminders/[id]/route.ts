@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabase, isSupabaseConfigured, normalizeRow } from "@/lib/supabase";
+import { explainError, getSupabase, isSupabaseConfigured, normalizeRow, supabaseConfigError } from "@/lib/supabase";
 import { parseReminderInput } from "@/lib/validate";
 import type { Reminder } from "@/lib/types";
 
@@ -11,6 +11,8 @@ function guard(id: string) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
   }
+  const configError = supabaseConfigError();
+  if (configError) return NextResponse.json({ error: configError }, { status: 500 });
   if (!UUID_RE.test(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   return null;
 }
@@ -24,7 +26,7 @@ export async function PUT(request: Request, { params }: Context) {
   if (typeof parsed === "string") return NextResponse.json({ error: parsed }, { status: 400 });
 
   const { data, error } = await getSupabase().from("reminders").update(parsed).eq("id", id).select("*").maybeSingle();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: explainError(error) }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ reminder: normalizeRow(data as Reminder) });
 }
@@ -45,7 +47,7 @@ export async function PATCH(request: Request, { params }: Context) {
     .eq("id", id)
     .select("*")
     .maybeSingle();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: explainError(error) }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ reminder: normalizeRow(data as Reminder) });
 }
@@ -56,6 +58,6 @@ export async function DELETE(_request: Request, { params }: Context) {
   if (blocked) return blocked;
 
   const { error } = await getSupabase().from("reminders").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: explainError(error) }, { status: 500 });
   return new NextResponse(null, { status: 204 });
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSupabase, isSupabaseConfigured, normalizeRow } from "@/lib/supabase";
+import { explainError, getSupabase, isSupabaseConfigured, normalizeRow, supabaseConfigError } from "@/lib/supabase";
 import { parseReminderInput } from "@/lib/validate";
 import type { Reminder, ReminderInput } from "@/lib/types";
 
@@ -9,11 +9,13 @@ export async function GET() {
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ configured: false, reminders: [] });
   }
+  const configError = supabaseConfigError();
+  if (configError) return NextResponse.json({ error: configError }, { status: 500 });
   const { data, error } = await getSupabase()
     .from("reminders")
     .select("*")
     .order("time", { ascending: true });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: explainError(error) }, { status: 500 });
   return NextResponse.json({ configured: true, reminders: (data as Reminder[]).map(normalizeRow) });
 }
 
@@ -22,6 +24,8 @@ export async function POST(request: Request) {
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ error: "Supabase is not configured" }, { status: 503 });
   }
+  const configError = supabaseConfigError();
+  if (configError) return NextResponse.json({ error: configError }, { status: 500 });
   const body = await request.json().catch(() => null);
   const items = Array.isArray(body) ? body.slice(0, 50) : [body];
   const parsed: ReminderInput[] = [];
@@ -31,6 +35,6 @@ export async function POST(request: Request) {
     parsed.push(result);
   }
   const { data, error } = await getSupabase().from("reminders").insert(parsed).select("*");
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return NextResponse.json({ error: explainError(error) }, { status: 500 });
   return NextResponse.json({ reminders: (data as Reminder[]).map(normalizeRow) }, { status: 201 });
 }

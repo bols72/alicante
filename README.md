@@ -68,6 +68,24 @@ Other scripts: `npm run build`, `npm start`, `npm run lint` (type check).
 
 The browser never talks to Supabase directly. All reads and writes go through the Next.js API routes in `app/api/reminders`, which use the secret key on the server. Row Level Security is enabled on the table with no public policies, so the anon key can't read or change reminders.
 
+### Check the connection
+
+```bash
+npm run check:supabase
+```
+
+This reads `.env.local` and checks the URL, the key, and that the `reminders` table can be read and written. It never prints the key.
+
+### Troubleshooting
+
+| Message | Fix |
+|---------|-----|
+| *Invalid path specified in request URL* / *Supabase rejected the request path* | `SUPABASE_URL` must be the bare project URL, like `https://abcd1234.supabase.co`, with no `/rest/v1` or other path. Wingman now strips extra paths automatically; redeploy after updating. |
+| *The reminders table doesn't exist yet* | Run `supabase/schema.sql` in the Supabase SQL editor. |
+| *Supabase refused the API key* | Use a **secret** key (`sb_secret_...`) for `SUPABASE_SECRET_KEY`, not the publishable key. |
+
+On Vercel, environment variable changes only apply after a **redeploy**.
+
 ## Deploy to Vercel
 
 1. Push this repository to GitHub.
