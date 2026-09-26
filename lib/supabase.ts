@@ -69,7 +69,7 @@ export function explainError(error: { message: string; code?: string }): string 
   if (/invalid api key|unregistered api key|jwt|unauthorized|permission denied/i.test(msg) || error.code === "42501") {
     return "Supabase refused the API key. Set SUPABASE_SECRET_KEY to a secret key (sb_secret_...), not the publishable key.";
   }
-  if (/fetch failed|enotfound|getaddrinfo/i.test(msg)) {
+  if (!msg.trim() || /fetch failed|enotfound|getaddrinfo/i.test(msg)) {
     return "Could not reach Supabase. Check that SUPABASE_URL points to your project, e.g. https://abcd1234.supabase.co";
   }
   return msg;

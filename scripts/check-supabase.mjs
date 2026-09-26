@@ -47,7 +47,10 @@ if (kind === "PUBLISHABLE key") fail("That's the publishable key. Use a secret k
 const db = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 
 const { count, error: selectError } = await db.from("reminders").select("*", { count: "exact", head: true });
-if (selectError) fail(`select failed: ${selectError.message}${selectError.code ? ` (${selectError.code})` : ""}`);
+if (selectError) {
+  const detail = selectError.message || selectError.details || "no response – Supabase could not be reached (network/firewall?)";
+  fail(`select failed: ${detail}${selectError.code ? ` (${selectError.code})` : ""}`);
+}
 console.log(`✓ reminders table readable (${count} rows)`);
 
 const { data: inserted, error: insertError } = await db
